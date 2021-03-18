@@ -16,15 +16,17 @@ void Game::run()
   while (mWindow.isOpen())
   {
       processEvents();
-      timeSinceLastUpdate += clock.restart();
-      while(timeSinceLastUpdate > TimePerFrame)
-      {
-        timeSinceLastUpdate -= TimePerFrame;
-        processEvents();
-        update(TimePerFrame);
-      }
-      
+      timeSinceLastUpdate = clock.restart();
+      // while(timeSinceLastUpdate > TimePerFrame)
+      // {
+      //   timeSinceLastUpdate -= TimePerFrame;
+      //   processEvents();
+      //   update(TimePerFrame);
+      // }
+      update(timeSinceLastUpdate);
+
       render();
+
   }
 }
 

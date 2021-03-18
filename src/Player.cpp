@@ -35,7 +35,7 @@ Player::Player()
 void Player::Tick(sf::Time deltaTime)
 {
     sf::Vector2f movement(0.f, 0.f);
-
+  
     if (currDir == "Up")
     {
       movement.y -= PlayerSpeed;
@@ -70,12 +70,7 @@ void Player::Tick(sf::Time deltaTime)
 void Player::handleInput(sf::Keyboard::Key key, 
                               bool isPressed)
 {
-      if(currKey != sf::Keyboard::Unknown && currKey != key)
-      {
-        return;
-      }
-
-      if(isPressed && currDir == "")
+      if(isPressed && currKey != key)
       {
             currKey = key;
             currFrameCounter = needFrameCounter;
