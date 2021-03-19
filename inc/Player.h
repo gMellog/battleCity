@@ -1,16 +1,23 @@
 #pragma once
-#include <Tickable.h>
+#include <Actor.h>
 #include <map>
 #include <iostream>
+#include <Toolchain.h>
 
-struct Player : ITickable
+struct Player : IActor
 {
   public:
            Player();
       void handleInput(sf::Keyboard::Key key, 
                               bool isPressed);
       void Tick(sf::Time deltaTime) override;
-      void render(sf::RenderWindow& window);
+      bool isPossibleOverlap(const sf::Sprite& sprite) const noexcept override;
+      void render(sf::RenderWindow& window) override;
+
+  private:
+      void shoot();
+      bool isMoveKey(sf::Keyboard::Key key) const noexcept;
+      bool isMoving() const noexcept;
 
   private:
 
@@ -38,8 +45,8 @@ struct Player : ITickable
       };
 
       sf::Keyboard::Key currKey;
-      std::map<std::string, DrawSprite> mDrawSprites;
-      std::string currDir;
+      std::array<DrawSprite, 4> drawSprites;
+      EDir dir;
       unsigned int currFrameCounter;
       unsigned int needFrameCounter;
       float PlayerSpeed;

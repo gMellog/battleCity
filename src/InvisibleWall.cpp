@@ -12,3 +12,13 @@ bool InvisibleWall::isPossibleOverlap(const sf::Sprite& sprite) const noexcept
 {
      return !_wall.intersects(sprite.getGlobalBounds());
 }
+
+void InvisibleWall::Tick(sf::Time deltaTime)
+{
+
+}
+
+void InvisibleWall::render(sf::RenderWindow& window)
+{
+
+}

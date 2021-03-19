@@ -2,30 +2,38 @@
 #include <SFML/Graphics.hpp>
 #include <InvisibleWall.h>
 #include <Player.h>
+#include <Toolchain.h>
+
+using Actors = std::vector<std::unique_ptr<IActor>>;
 
 class Game
 {
   public:
      void   run();
-     static Game&  get();
+     static Game&  
+            get();
 
-     std::vector<ICollisionable*>
-            getCollisionables();
+    std::vector<IActor*> 
+            getAllActors();
+
+     static 
+     void    createBullet(const sf::Vector2f& pos, EDir dir);
+
   private:   
      void   processEvents();
      void   update(sf::Time deltaTime);
      void   render();
      void   handlePlayerInput(sf::Keyboard::Key key, 
                               bool isPressed);
+     void   createInvisibleWall(const sf::FloatRect& bounds);
   private:
 
      Game();
-     InvisibleWall wall;
-     InvisibleWall wall1;
-     InvisibleWall wall2;
-     InvisibleWall wall3;
+     unsigned int windowWidth;
+     unsigned int windowHeight;
+     Actors actors;
 
      sf::RenderWindow mWindow;
      sf::Time TimePerFrame;
-     Player player;
+     Player* player_ptr;
 };

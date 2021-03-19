@@ -1,12 +1,13 @@
 #pragma once
-#include <Collisionable.h>
-#include <SFML/Graphics.hpp>
+#include <Actor.h>
 
-struct InvisibleWall: ICollisionable
+struct InvisibleWall: IActor
 {
   public:
        InvisibleWall(const sf::FloatRect& wall = sf::FloatRect());
   bool isPossibleOverlap(const sf::Sprite& sprite) const noexcept override;
+  void Tick(sf::Time deltaTime) override;
+  void render(sf::RenderWindow& window) override;
   
   private:
   sf::FloatRect _wall;

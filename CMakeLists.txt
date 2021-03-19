@@ -10,6 +10,7 @@ add_executable(battle_city
                ${SOURCE}Game.cpp
                ${SOURCE}Player.cpp
                ${SOURCE}InvisibleWall.cpp
+               ${SOURCE}Bullet.cpp
   )
 
 set_target_properties(battle_city
