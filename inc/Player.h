@@ -4,20 +4,25 @@
 #include <iostream>
 #include <Toolchain.h>
 
-struct Player : IActor
+struct Player : Actor
 {
   public:
-           Player();
+           Player(const sf::Vector2f& pos);
       void handleInput(sf::Keyboard::Key key, 
                               bool isPressed);
-      void Tick(sf::Time deltaTime) override;
-      bool isPossibleOverlap(const sf::Sprite& sprite) const noexcept override;
+      void tick(sf::Time deltaTime) override;
+      bool isPossibleOverlap(const sf::FloatRect& area) const noexcept override;
       void render(sf::RenderWindow& window) override;
+      void overlap(const std::string& Type) override;
+      sf::FloatRect getBounds() const noexcept override;
+      std::string getType() const override;
+
 
   private:
       void shoot();
-      bool isMoveKey(sf::Keyboard::Key key) const noexcept;
       bool isMoving() const noexcept;
+      void prepareForAnimationChange(EDir dir);
+      void removeImpl() override;
 
   private:
 
@@ -44,11 +49,18 @@ struct Player : IActor
           sf::IntRect _areaB;
       };
 
-      sf::Keyboard::Key currKey;
       std::array<DrawSprite, 4> drawSprites;
       EDir dir;
       unsigned int currFrameCounter;
       unsigned int needFrameCounter;
+      
+      bool shootPossibility;
+      float currReloadTime;
+      float endReloadTime;
+
+    
+      float reloadGun;
+
       float PlayerSpeed;
       sf::Texture texture;
       sf::Sprite  sprite;

@@ -2,12 +2,14 @@
 #include <Game.h>
 #include <iostream>
 
-Player::Player()
+Player::Player(const sf::Vector2f& pos)
 {
-  currKey = sf::Keyboard::Key::Unknown;
   currFrameCounter = 0;
   needFrameCounter = 2000;
-  PlayerSpeed = 150.f;
+  endReloadTime = 0.5f;
+  PlayerSpeed = 100.f;
+  shootPossibility = true;
+
   if(!texture.loadFromFile("media/playerSprites.png"))
   {
 
@@ -15,9 +17,9 @@ Player::Player()
   else
   {
     sprite.setTexture(texture);
-    sprite.setPosition(500.f, 400.f);
+    sprite.setPosition(pos);
 
-    DrawSprite up{sf::IntRect(78,40,39,40),  sf::IntRect(117,40,40,40)};
+    DrawSprite up{sf::IntRect(78,40,38,40),  sf::IntRect(117,40,38,40)};
     DrawSprite down{sf::IntRect(0,39,39,40), sf::IntRect(39,39,39,40)};
     DrawSprite left{sf::IntRect(78,0,39,39), sf::IntRect(117,0,39,39)};
     DrawSprite right{sf::IntRect(0,0,39,39), sf::IntRect(39,0,39,39)};
@@ -32,132 +34,126 @@ Player::Player()
   }
 }
 
-bool Player::isPossibleOverlap(const sf::Sprite& sprite) const noexcept
+sf::FloatRect Player::getBounds() const noexcept
 {
-    return true;
+  return sprite.getGlobalBounds();
 }
 
-void Player::Tick(sf::Time deltaTime)
+std::string Player::getType() const
 {
-    if(isMoving())
-    {
+  return "Player";
+}
+
+void Player::overlap(const std::string& Type)
+{
+
+}
+
+bool Player::isPossibleOverlap(const sf::FloatRect& area) const noexcept
+{
+    return sprite.getGlobalBounds().intersects(area);
+}
+
+void Player::tick(sf::Time deltaTime)
+{
       sf::Vector2f movement(0.f, 0.f);
 
-      switch (dir)
+      if(!shootPossibility)
       {
-        case EDir::UP:
-        movement.y -= PlayerSpeed;
-        break;
-
-        case EDir::DOWN:
-        movement.y += PlayerSpeed;
-        break;
-
-        case EDir::LEFT:
-        movement.x -= PlayerSpeed;
-        break;
-
-        case EDir::RIGHT:
-        movement.x += PlayerSpeed;
-        break;
-      }
-
-      auto& game = Game::get();
-      auto actors = game.getAllActors();
-      auto it = std::find(actors.begin(),actors.end(), this);
-      if(it != actors.end())
-      {
-        actors.erase(it);
-      }
-      
-      sprite.move(movement * deltaTime.asSeconds());
-      for(const auto i : actors)
-      {
-        if(!i->isPossibleOverlap(sprite))
+        currReloadTime += deltaTime.asSeconds();
+        if(currReloadTime >= endReloadTime)
         {
-          sprite.move(-(movement * deltaTime.asSeconds()));
+          shootPossibility = true;
+          currReloadTime = 0.f;
         }
       }
-    }
-}
 
-void Player::handleInput(sf::Keyboard::Key key, 
-                              bool isPressed)
-{
-
-      std::cout << "handleInput key: " << key << " pressed: " << std::boolalpha << isPressed << std::endl;
-      if(isPressed && isMoveKey(key) && currKey != key)
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
       {
-            currFrameCounter = needFrameCounter;
+          movement.y -= PlayerSpeed;
+          prepareForAnimationChange(EDir::UP);
       }
-
-      currKey = key;
-
-      if (key == sf::Keyboard::W)
+      else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
       {
-          dir = EDir::UP;
+          movement.y += PlayerSpeed;
+          prepareForAnimationChange(EDir::DOWN);
       }
-      else if (key == sf::Keyboard::S)
+      else if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
       {
-          dir = EDir::DOWN;
+          movement.x -= PlayerSpeed;
+          prepareForAnimationChange(EDir::LEFT);
       }
-      else if (key == sf::Keyboard::A)
+      else if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
       {
-          dir = EDir::LEFT;
+          movement.x += PlayerSpeed;
+          prepareForAnimationChange(EDir::RIGHT);
       }
-      else if (key == sf::Keyboard::D)
+      
+      if(sf::Keyboard::isKeyPressed(sf::Keyboard::F) && shootPossibility)
       {
-          dir = EDir::RIGHT;
-      }
-      else if (key == sf::Keyboard::F)
-      {
+          shootPossibility = false;
           shoot();
       }
 
-      if(!isPressed && isMoveKey(currKey) && currKey == key)
+
+      if(movement != sf::Vector2f(0.f,0.f))
       {
-           currKey = sf::Keyboard::Unknown;
+        sprite.move(movement * deltaTime.asSeconds());
+        const auto overlappedActor = Game::tryToOverlap(this);
+
+        if(overlappedActor != "")
+        {
+          if(overlappedActor == "InvisibleWall" || overlappedActor == "Brick")
+          {
+            sprite.move(-(movement * deltaTime.asSeconds()));
+          }
+        }
+        
       }
+}
+
+void Player::prepareForAnimationChange(EDir dir)
+{
+  if(this->dir != dir)
+  {
+     this->dir = dir;
+     currFrameCounter = needFrameCounter;
+  }
 }
 
 void Player::shoot()
 {
       sf::Vector2f pos = sprite.getPosition();
-      
-      pos += sf::Vector2f(sprite.getGlobalBounds().width / 2.f - 4.5f, -50.f);
-      // switch (dir)
-      // {
-      //   case EDir::UP:
-      //   movement.y -= PlayerSpeed;
-      //   break;
+      //4.5 it's width / 2 of bullet
+      //Left case where handeled cause of bugs (+5.f)
+      switch (dir)
+      {
+        case EDir::UP:
+        pos += sf::Vector2f(sprite.getGlobalBounds().width / 2.f - 4.5f, -13.f);
+        break;
 
-      //   case EDir::DOWN:
-      //   movement.y += PlayerSpeed;
-      //   break;
+        case EDir::DOWN:
+        pos += sf::Vector2f(sprite.getGlobalBounds().width / 2.f + 4.5f, sprite.getGlobalBounds().height / 2.f + 33.f);
+        break;
 
-      //   case EDir::LEFT:
-      //   movement.x -= PlayerSpeed;
-      //   break;
+        case EDir::LEFT:
+        pos += sf::Vector2f(-13.f, sprite.getGlobalBounds().height / 2 + 4.5f + 5.f);
+        break;
 
-      //   case EDir::RIGHT:
-      //   movement.x += PlayerSpeed;
-      //   break;
-      // }
+        case EDir::RIGHT:
+        pos += sf::Vector2f(sprite.getGlobalBounds().width + 13.f, sprite.getGlobalBounds().height / 2 - 4.5f);
+        break;
+      }
 
-      Game::createBullet(pos,dir);
-}
-
-bool Player::isMoveKey(sf::Keyboard::Key key) const noexcept
-{
-  return  key == sf::Keyboard::W ||
-          key == sf::Keyboard::A ||
-          key == sf::Keyboard::S ||
-          key == sf::Keyboard::D;
+      Game::createBullet(300.f,pos,dir);
 }
 
 bool Player::isMoving() const noexcept
 {
-   return isMoveKey(currKey);
+   return sf::Keyboard::isKeyPressed(sf::Keyboard::W) ||
+          sf::Keyboard::isKeyPressed(sf::Keyboard::S) ||
+          sf::Keyboard::isKeyPressed(sf::Keyboard::A) ||
+          sf::Keyboard::isKeyPressed(sf::Keyboard::D);
 }
 
 void Player::render(sf::RenderWindow& window)
@@ -177,4 +173,9 @@ void Player::render(sf::RenderWindow& window)
   }
 
   window.draw(sprite);
+}
+
+void Player::removeImpl()
+{
+
 }

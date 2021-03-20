@@ -1,23 +1,30 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <InvisibleWall.h>
 #include <Player.h>
 #include <Toolchain.h>
 
-using Actors = std::vector<std::unique_ptr<IActor>>;
+using Actors = std::vector<std::unique_ptr<Actor>>;
 
 class Game
 {
   public:
+    
      void   run();
      static Game&  
             get();
 
-    std::vector<IActor*> 
+    std::vector<Actor*> 
             getAllActors();
 
      static 
-     void    createBullet(const sf::Vector2f& pos, EDir dir);
+     void    createBullet(float speed,const sf::Vector2f& pos, EDir dir);
+    
+     static
+     void    removeActor(Actor* r_actor);
+    
+     static
+     std::string tryToOverlap(Actor* actor);
+
 
   private:   
      void   processEvents();
@@ -26,6 +33,7 @@ class Game
      void   handlePlayerInput(sf::Keyboard::Key key, 
                               bool isPressed);
      void   createInvisibleWall(const sf::FloatRect& bounds);
+
   private:
 
      Game();
